@@ -1,15 +1,29 @@
 from datetime import datetime, timezone
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.v1.router import api_router
+from app.core.minio_client import MinioClientManager
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Auto-initialize MinIO persistent buckets
+    try:
+        MinioClientManager.initialize_buckets()
+    except Exception as exc:
+        print(f"[VIGILANT MINIO] Bucket initialization: {exc}")
+    yield
+
 
 app = FastAPI(
     title="VIGILANT - AI CCTV Surveillance Intelligence System",
     description="Enterprise Authentication, RBAC, and AI CCTV Stream Management Services",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan
 )
 
 # Configure CORS

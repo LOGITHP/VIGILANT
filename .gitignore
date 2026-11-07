@@ -53,3 +53,12 @@ Thumbs.db
 *.swp
 *.swo
 
+# Media & Temp Uploads
+*.mp4
+*.mkv
+*.avi
+*.part
+/sample_surveillance.mp4
+/upload_temp/
+
+

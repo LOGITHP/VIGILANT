@@ -25,16 +25,17 @@
 ## Phase 2: Video Upload, Storage, Media Processing & Playback
 - [x] Technical Specification Document (`docs/vigilant-video-pipeline-design.md`)
 - [x] Implementation Plan (`docs/vigilant-video-pipeline-plan.md`)
-- [ ] Task 1: MinIO Storage Infrastructure & Backend Dependencies
-- [ ] Task 2: Database Models & Alembic Migration for Video Archive
-- [ ] Task 3: MinIO Storage Service & Chunk Assembly Engine
-- [ ] Task 4: Media Telemetry (FFprobe) & Thumbnail Generation (FFmpeg)
-- [ ] Task 5: Video REST API Endpoints (Upload, Library, Range Streaming)
-- [ ] Task 6: Frontend Video Types & Resumable Chunk Upload Engine
-- [ ] Task 7: Frontend Video Upload Center UI
-- [ ] Task 8: Frontend Surveillance Video Library UI (Grid & Table Views)
-- [ ] Task 9: Frontend Surveillance Video Player Modal
-- [ ] Task 10: Integrated Top Navigation & Main View Integration
-- [ ] Task 11: End-to-End Containerization, Testing & Documentation
+- [x] Task 1: MinIO Storage Infrastructure & Backend Dependencies (`cgr.dev/chainguard/minio:latest`, `minio>=7.2.10`, `aiofiles>=24.1.0`)
+- [x] Task 2: Database Models & Alembic Migration for Video Archive (`videos`, `video_upload_sessions`, `video_chunks`)
+- [x] Task 3: MinIO Storage Service & Chunk Assembly Engine (5MB chunk validation, SHA-256 integrity check, bucket lifecycle)
+- [x] Task 4: Media Telemetry (FFprobe) & Thumbnail Generation (FFmpeg) (duration, fps, resolution, codecs, bitrate, frame snapshot)
+- [x] Task 5: Video REST API Endpoints (Upload, Library, Range Streaming, Thumbnail)
+- [x] Task 6: Frontend Video Types & Resumable Chunk Upload Engine (Web Crypto SHA-256, pause/resume, speed/ETA telemetry)
+- [x] Task 7: Frontend Video Upload Center UI (Drag-and-drop dropzone, queue tracker, camera tags)
+- [x] Task 8: Frontend Surveillance Video Library UI (Grid & Table views, debounced search, status filter, pagination)
+- [x] Task 9: Frontend Surveillance Video Player Modal (Scrub bar, jump keys, variable speed 0.5x-2.0x, telemetry drawer)
+- [x] Task 10: Integrated Top Navigation & Main View Integration (Tabs: LIVE CCTV, VIDEO ARCHIVE, UPLOAD CENTER)
+- [x] Task 11: End-to-End Containerization, Testing & Documentation (21/21 backend pytest suite + 9/9 live Docker container tests)
+
 
 

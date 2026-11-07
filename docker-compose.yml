@@ -20,7 +20,7 @@ services:
       - vigilant-net
 
   minio:
-    image: minio/minio:RELEASE.2024-11-07T00-52-20Z
+    image: cgr.dev/chainguard/minio:latest
     container_name: vigilant_minio
     restart: unless-stopped
     command: server /data --console-address ":9001"
@@ -35,7 +35,7 @@ services:
     networks:
       - vigilant-net
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/live || exit 1"]
+      test: ["CMD", "bash", "-c", "</dev/tcp/127.0.0.1/9000"]
       interval: 5s
       timeout: 5s
       retries: 5

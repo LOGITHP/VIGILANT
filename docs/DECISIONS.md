@@ -40,4 +40,15 @@
   - Configure Vite preview mode with reverse proxy forwarding `/api` to the backend service.
   - Configure client-side API base URL with fallback to `http://localhost:8000/api/v1` for local browser execution.
 
+## ADR-005: Resumable Chunk Ingestion, Chainguard MinIO Storage & HTTP 206 Streaming
+- **Date:** 2026-11-07
+- **Status:** Accepted
+- **Context:** Surveillance feeds produce large, continuous video files (1080p, 4K) that risk transfer timeouts, memory exhaustion, and playback lag if transferred or stored as monolithic payloads.
+- **Decision:**
+  - **Chunked Resumable Upload**: Clients divide media into 5MB chunks, computing client-side Web Crypto SHA-256 hashes per chunk. FastAPI verifies each chunk's integrity on arrival, stores them in ephemeral staging, and supports pausing/resuming interrupted uploads via `/upload/{id}/status`.
+  - **S3 Object Storage**: Selected `cgr.dev/chainguard/minio:latest` for zero-vulnerability S3 object storage with persistent Docker volume `vigilant_minio_data`. Automated startup hooks guarantee bucket existence (`vigilant-videos`, `vigilant-thumbnails`).
+  - **FFprobe & FFmpeg Telemetry**: Native containerized `ffprobe` extracts exact stream metadata (duration, FPS, resolution, codecs, bitrate) stored into PostgreSQL `videos`. Asynchronous `ffmpeg` generates an instant surveillance thumbnail at timestamp 1.0s and uploads it to MinIO.
+  - **HTTP 206 Partial Content Streaming**: Backend proxies range-sliced object streams (`get_object(offset, length)`) directly from MinIO, delivering byte-level scrubbing, timestamp jumping, and instant seek in modern HTML5 surveillance video players.
+
+
 
