@@ -60,10 +60,6 @@ export const Login: React.FC = () => {
         {/* Top Header: Brand Identity */}
         <div className="flex items-center justify-between w-full">
           <BrandLogo size="md" />
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-[#0d2424]/80 border border-[#183b3d] text-[11px] font-mono text-[#19c39e] tracking-wider uppercase">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#19c39e] animate-pulse" />
-            AI Intelligence Online
-          </div>
         </div>
 
         {/* Content Section: 2 Columns */}
@@ -80,12 +76,6 @@ export const Login: React.FC = () => {
                 alt="VIGILANT AI CCTV Surveillance Camera"
                 className="max-h-[360px] sm:max-h-[420px] object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.9)]"
               />
-              {/* Subtle Camera telemetry overlay */}
-              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1 rounded-md bg-[#071515]/90 border border-[#143133] text-[10px] font-mono text-slate-400">
-                <span className="text-[#19c39e] font-semibold">CAM-01</span>
-                <span>•</span>
-                <span>PTZ 4K AI SENSOR</span>
-              </div>
             </div>
           </div>
 
@@ -233,12 +223,6 @@ export const Login: React.FC = () => {
             </div>
           </div>
 
-        </div>
-
-        {/* Footer info bar */}
-        <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 pt-2 border-t border-[#122e30]/40">
-          <div>SURVEILLANCE INTELLIGENCE SYSTEM v1.0</div>
-          <div>ENCRYPTION: ARGON2ID + JWT (HS256)</div>
         </div>
 
       </div>
