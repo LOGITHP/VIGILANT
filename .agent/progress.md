@@ -22,3 +22,19 @@
   - Fixed client-side API endpoint resolution & Vite preview proxy routing.
   - Enhanced Pydantic `LoginRequest` validator to accept both `username` and `email` payload keys.
 
+## Phase 2: Video Upload, Storage, Media Processing & Playback
+- [x] Technical Specification Document (`docs/vigilant-video-pipeline-design.md`)
+- [x] Implementation Plan (`docs/vigilant-video-pipeline-plan.md`)
+- [ ] Task 1: MinIO Storage Infrastructure & Backend Dependencies
+- [ ] Task 2: Database Models & Alembic Migration for Video Archive
+- [ ] Task 3: MinIO Storage Service & Chunk Assembly Engine
+- [ ] Task 4: Media Telemetry (FFprobe) & Thumbnail Generation (FFmpeg)
+- [ ] Task 5: Video REST API Endpoints (Upload, Library, Range Streaming)
+- [ ] Task 6: Frontend Video Types & Resumable Chunk Upload Engine
+- [ ] Task 7: Frontend Video Upload Center UI
+- [ ] Task 8: Frontend Surveillance Video Library UI (Grid & Table Views)
+- [ ] Task 9: Frontend Surveillance Video Player Modal
+- [ ] Task 10: Integrated Top Navigation & Main View Integration
+- [ ] Task 11: End-to-End Containerization, Testing & Documentation
+
+

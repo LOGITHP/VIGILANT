@@ -11,10 +11,14 @@ This directory contains the system specifications, architecture blueprints, impl
 ### 1. Specifications & Architecture
 - **[Authentication & Dashboard Specification](vigilant-auth-design.md)**
   - Comprehensive architectural design of the authentication service, PostgreSQL schema, RBAC role matrix, session revocation, and surveillance UI layout.
+- **[Video Upload, Storage & Playback Specification](vigilant-video-pipeline-design.md)**
+  - Technical design of the chunked upload ingestion protocol, MinIO S3 object storage, FFprobe media telemetry extraction, FFmpeg thumbnail generation, and HTTP 206 range streaming proxy.
 
 ### 2. Implementation Plans & Workflows
 - **[Phase 1 Implementation Plan](vigilant-auth-plan.md)**
   - Bite-sized execution tasks covering backend scaffolding, Argon2id/JWT cryptography, Alembic migrations, ephemeral seed automation, Docker Compose topology, and React frontend matching Reference 1.
+- **[Phase 2 Implementation Plan: Video Pipeline](vigilant-video-pipeline-plan.md)**
+  - Step-by-step TDD execution plan for MinIO containerization, chunk assembly, FFprobe/FFmpeg worker, video REST endpoints, React upload center, video library, and surveillance theater player.
 
 ### 3. Decisions & Standards
 - **[Architecture Decision Records (ADRs)](DECISIONS.md)**
