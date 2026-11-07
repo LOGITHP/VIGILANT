@@ -63,6 +63,11 @@ export const videoApi = {
     await apiClient.delete(`/videos/${id}`);
   },
 
+  recordLiveFeed: async (payload: { camera_id: string; title?: string; duration_seconds?: number; description?: string }): Promise<Video> => {
+    const res = await apiClient.post<Video>('/videos/live/record', payload);
+    return res.data;
+  },
+
   getStreamUrl: (id: string): string => {
     const base = apiClient.defaults.baseURL || 'http://localhost:8000/api/v1';
     return `${base}/videos/${id}/stream`;
@@ -73,3 +78,4 @@ export const videoApi = {
     return `${base}/videos/${id}/thumbnail`;
   },
 };
+

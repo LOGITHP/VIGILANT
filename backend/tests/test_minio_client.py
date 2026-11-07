@@ -33,3 +33,4 @@ def test_minio_initialize_buckets():
         assert mock_instance.bucket_exists.call_count == 2
         # Should make the missing bucket
         mock_instance.make_bucket.assert_called_once_with(settings.MINIO_BUCKET_VIDEOS)
+

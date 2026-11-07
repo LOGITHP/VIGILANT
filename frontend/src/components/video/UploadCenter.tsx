@@ -5,9 +5,11 @@ import {
   Cpu,
   Layers,
   Sparkles,
-  Trash2
+  Trash2,
+  Radio,
+  FolderArchive
 } from 'lucide-react';
-import { UploadItem } from '../../types/video';
+import { UploadItem, VideoSourceType } from '../../types/video';
 import { ResumableChunkUploader } from '../../utils/chunkUploader';
 import { UploadQueueItem } from './UploadQueueItem';
 
@@ -18,6 +20,7 @@ interface UploadCenterProps {
 export const UploadCenter: React.FC<UploadCenterProps> = ({ onUploadComplete }) => {
   const [queue, setQueue] = useState<UploadItem[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [sourceType, setSourceType] = useState<VideoSourceType>('UPLOADED');
   const [cameraTag, setCameraTag] = useState('');
   const [description, setDescription] = useState('');
   const uploadersRef = useRef<Map<string, ResumableChunkUploader>>(new Map());
@@ -30,6 +33,7 @@ export const UploadCenter: React.FC<UploadCenterProps> = ({ onUploadComplete }) 
       id: `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       file,
       title: cameraTag.trim() ? `${cameraTag.trim()} - ${file.name}` : file.name,
+      sourceType,
       description: description.trim(),
       status: 'QUEUED',
       progress: 0,
@@ -56,7 +60,7 @@ export const UploadCenter: React.FC<UploadCenterProps> = ({ onUploadComplete }) 
     uploadersRef.current.set(item.id, uploader);
 
     try {
-      await uploader.start(item.title, item.description);
+      await uploader.start(item.title, item.description, item.sourceType || 'UPLOADED');
       setQueue((prev) =>
         prev.map((q) => (q.id === item.id ? { ...q, status: 'READY', progress: 100 } : q))
       );
@@ -119,6 +123,46 @@ export const UploadCenter: React.FC<UploadCenterProps> = ({ onUploadComplete }) 
 
   return (
     <div className="space-y-6">
+      {/* Target Archive Selector */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#0a1819] border border-[#14373a] rounded-2xl p-4">
+        <div>
+          <span className="text-xs font-mono uppercase tracking-wider text-[#15b89a] block font-semibold">
+            Destination Surveillance Archive
+          </span>
+          <span className="text-xs text-slate-400">
+            Select the designated archive catalog for this video ingestion batch.
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 bg-[#061112] border border-[#183d40] p-1 rounded-xl">
+          <button
+            type="button"
+            onClick={() => setSourceType('UPLOADED')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono transition-all ${
+              sourceType === 'UPLOADED'
+                ? 'bg-[#15b89a] text-slate-950 font-semibold shadow-[0_0_12px_rgba(21,184,154,0.3)]'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <FolderArchive className="w-3.5 h-3.5" />
+            <span>Uploaded Archive</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSourceType('LIVE')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono transition-all ${
+              sourceType === 'LIVE'
+                ? 'bg-rose-600 text-white font-semibold shadow-[0_0_12px_rgba(244,63,94,0.4)]'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Radio className="w-3.5 h-3.5" />
+            <span>Live Camera Dump</span>
+          </button>
+        </div>
+      </div>
+
       {/* Upload Settings & Metadata Bar */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#0a1618]/70 border border-[#133436] rounded-2xl p-5 backdrop-blur-md">
         <div>

@@ -95,3 +95,4 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_videos_status'), table_name='videos')
     op.drop_index(op.f('ix_videos_title'), table_name='videos')
     op.drop_table('videos')
+

@@ -69,3 +69,4 @@ async def test_video_models_crud(db_session: AsyncSession):
     assert len(saved_video.upload_sessions) == 1
     assert len(saved_video.upload_sessions[0].chunks) == 1
     assert saved_video.upload_sessions[0].chunks[0].chunk_index == 0
+

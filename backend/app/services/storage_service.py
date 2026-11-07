@@ -19,6 +19,31 @@ class StorageService:
         os.makedirs(temp_dir, exist_ok=True)
         return temp_dir
 
+    @staticmethod
+    def compute_file_sha256(file_path: str) -> str:
+        hasher = hashlib.sha256()
+        with open(file_path, "rb") as f:
+            while chunk := f.read(65536):
+                hasher.update(chunk)
+        return hasher.hexdigest()
+
+    @classmethod
+    def upload_file_to_s3(
+        cls,
+        file_path: str,
+        target_s3_key: str,
+        content_type: str = "video/mp4",
+        bucket_name: Optional[str] = None
+    ) -> None:
+        bucket = bucket_name or settings.MINIO_BUCKET_VIDEOS
+        client = get_minio_client()
+        client.fput_object(
+            bucket_name=bucket,
+            object_name=target_s3_key,
+            file_path=file_path,
+            content_type=content_type
+        )
+
     @classmethod
     async def save_chunk(
         cls,
@@ -199,3 +224,4 @@ class StorageService:
                 minio_client.remove_object(settings.MINIO_BUCKET_THUMBNAILS, thumbnail_s3_key)
             except Exception as e:
                 logger.warning("Could not delete thumbnail object %s: %s", thumbnail_s3_key, e)
+

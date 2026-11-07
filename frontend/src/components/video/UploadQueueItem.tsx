@@ -191,3 +191,4 @@ export const UploadQueueItem: React.FC<UploadQueueItemProps> = ({
     </div>
   );
 };
+

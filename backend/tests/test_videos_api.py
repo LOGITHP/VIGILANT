@@ -79,13 +79,24 @@ async def test_video_upload_and_stream_flow(client: AsyncClient, db_session):
         comp_data = comp_res.json()
         assert comp_data["id"] == video_id
         assert comp_data["title"] == "East Gate Morning Feed"
+        assert comp_data["source_type"] == "UPLOADED"
 
-    # 7. List videos and search
+    # 7. List videos, search, and verify source_type separation
     list_res = await client.get("/api/v1/videos?q=East Gate", headers=headers)
     assert list_res.status_code == 200
     items = list_res.json()["items"]
     assert len(items) == 1
     assert items[0]["title"] == "East Gate Morning Feed"
+    assert items[0]["source_type"] == "UPLOADED"
+
+    # Check separate archives
+    uploaded_res = await client.get("/api/v1/videos?source_type=UPLOADED", headers=headers)
+    assert uploaded_res.status_code == 200
+    assert any(v["id"] == str(video_id) for v in uploaded_res.json()["items"])
+
+    live_res = await client.get("/api/v1/videos?source_type=LIVE", headers=headers)
+    assert live_res.status_code == 200
+    assert not any(v["id"] == str(video_id) for v in live_res.json()["items"])
 
     # 8. Test range streaming endpoint with Range header (mocking MinIO stream)
     with patch("app.services.storage_service.get_minio_client") as mock_get_client:
@@ -102,3 +113,4 @@ async def test_video_upload_and_stream_flow(client: AsyncClient, db_session):
         assert stream_res.status_code == 206
         assert stream_res.headers["Content-Range"] == "bytes 0-511/2048"
         assert stream_res.headers["Accept-Ranges"] == "bytes"
+

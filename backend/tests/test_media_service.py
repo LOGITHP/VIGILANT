@@ -62,3 +62,4 @@ def test_generate_thumbnail_success():
         thumb = MediaProcessingService.generate_thumbnail("/tmp/mock_video.mp4", timestamp_sec=1.5)
         assert thumb == fake_jpeg
         assert thumb.startswith(b"\xff\xd8\xff")
+

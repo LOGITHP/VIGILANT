@@ -6,6 +6,9 @@ interface VideoFilterBarProps {
   onSearchChange: (q: string) => void;
   statusFilter: string;
   onStatusChange: (status: string) => void;
+  sourceFilter?: 'LIVE' | 'UPLOADED' | 'ALL';
+  onSourceFilterChange?: (source: 'LIVE' | 'UPLOADED' | 'ALL') => void;
+  showSourceFilter?: boolean;
   viewMode: 'grid' | 'table';
   onViewModeChange: (mode: 'grid' | 'table') => void;
   onRefresh: () => void;
@@ -17,16 +20,25 @@ export const VideoFilterBar: React.FC<VideoFilterBarProps> = ({
   onSearchChange,
   statusFilter,
   onStatusChange,
+  sourceFilter = 'ALL',
+  onSourceFilterChange,
+  showSourceFilter = false,
   viewMode,
   onViewModeChange,
   onRefresh,
   isLoading,
 }) => {
   const statusOptions = [
-    { label: 'All Footage', value: 'ALL' },
+    { label: 'All Status', value: 'ALL' },
     { label: 'Ready', value: 'READY' },
     { label: 'Processing', value: 'PROCESSING' },
     { label: 'Failed', value: 'FAILED' },
+  ];
+
+  const sourceOptions: { label: string; value: 'ALL' | 'LIVE' | 'UPLOADED' }[] = [
+    { label: 'All Sources', value: 'ALL' },
+    { label: 'Live Rec', value: 'LIVE' },
+    { label: 'Uploaded', value: 'UPLOADED' },
   ];
 
   return (
@@ -53,6 +65,25 @@ export const VideoFilterBar: React.FC<VideoFilterBarProps> = ({
 
       {/* Filter Pills & View Toggles */}
       <div className="flex items-center gap-3 flex-wrap">
+        {/* Source Pills (when enabled) */}
+        {showSourceFilter && onSourceFilterChange && (
+          <div className="flex items-center bg-[#061112] border border-[#1a4447] rounded-xl p-1">
+            {sourceOptions.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => onSourceFilterChange(opt.value)}
+                className={`px-3 py-1 text-xs rounded-lg transition-all ${
+                  sourceFilter === opt.value
+                    ? 'bg-[#15b89a] text-slate-950 font-medium shadow-[0_0_12px_rgba(21,184,154,0.3)]'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Status Pills */}
         <div className="flex items-center bg-[#061112] border border-[#1a4447] rounded-xl p-1">
           {statusOptions.map((opt) => (
@@ -109,3 +140,4 @@ export const VideoFilterBar: React.FC<VideoFilterBarProps> = ({
     </div>
   );
 };
+

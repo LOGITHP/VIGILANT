@@ -11,13 +11,16 @@ import {
   CheckCircle2,
   X,
   Camera,
-  Archive,
   UploadCloud,
-  Monitor
+  Monitor,
+  Radio,
+  FolderArchive,
+  Loader2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { BrandLogo } from '../components/BrandLogo';
 import { Video } from '../types/video';
+import { videoApi } from '../services/videoApi';
 import { VideoLibrary } from '../components/video/VideoLibrary';
 import { UploadCenter } from '../components/video/UploadCenter';
 import { VideoPlayerModal } from '../components/video/VideoPlayerModal';
@@ -25,8 +28,8 @@ import { VideoPlayerModal } from '../components/video/VideoPlayerModal';
 export const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
 
-  // Active Tab: 'live' | 'archive' | 'upload'
-  const [activeTab, setActiveTab] = useState<'live' | 'archive' | 'upload'>('live');
+  // Active Tab: 'live' | 'live_archive' | 'uploaded_archive' | 'upload'
+  const [activeTab, setActiveTab] = useState<'live' | 'live_archive' | 'uploaded_archive' | 'upload'>('live');
 
   // Active playing video modal
   const [activeVideo, setActiveVideo] = useState<Video | null>(null);
@@ -41,6 +44,10 @@ export const Dashboard: React.FC = () => {
   const [streamUrl, setStreamUrl] = useState('');
   const [protocol, setProtocol] = useState('RTSP');
   const [addNotice, setAddNotice] = useState<string | null>(null);
+
+  // Live recording state
+  const [isRecordingLive, setIsRecordingLive] = useState(false);
+  const [recordNotice, setRecordNotice] = useState<string | null>(null);
 
   useEffect(() => {
     const updateTimes = () => {
@@ -62,6 +69,25 @@ export const Dashboard: React.FC = () => {
       setStreamName('');
       setStreamUrl('');
     }, 1800);
+  };
+
+  const handleRecordLiveClip = async (cameraId = 'CAM-01') => {
+    setIsRecordingLive(true);
+    setRecordNotice(`Capturing live 4-second surveillance stream from ${cameraId}...`);
+    try {
+      await videoApi.recordLiveFeed({
+        camera_id: cameraId,
+        duration_seconds: 4,
+        description: `Live incident clip recorded from ${cameraId} CCTV node`,
+      });
+      setRecordNotice(`Live clip captured! Archived in LIVE ARCHIVE.`);
+      setTimeout(() => setRecordNotice(null), 4000);
+    } catch (err) {
+      setRecordNotice('Failed to capture live stream clip. Ensure backend is running.');
+      setTimeout(() => setRecordNotice(null), 3000);
+    } finally {
+      setIsRecordingLive(false);
+    }
   };
 
   return (
@@ -97,15 +123,30 @@ export const Dashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setActiveTab('archive')}
+            onClick={() => setActiveTab('live_archive')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-mono transition-all ${
-              activeTab === 'archive'
+              activeTab === 'live_archive'
+                ? 'bg-rose-600 text-white font-semibold shadow-[0_0_15px_rgba(244,63,94,0.4)]'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <span className="relative flex h-2 w-2">
+              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${activeTab === 'live_archive' ? 'bg-white' : 'bg-rose-500'}`}></span>
+              <span className={`relative inline-flex rounded-full h-2 w-2 ${activeTab === 'live_archive' ? 'bg-white' : 'bg-rose-500'}`}></span>
+            </span>
+            <span>LIVE ARCHIVE</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('uploaded_archive')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-mono transition-all ${
+              activeTab === 'uploaded_archive'
                 ? 'bg-[#15b89a] text-slate-950 font-semibold shadow-[0_0_15px_rgba(21,184,154,0.35)]'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Archive className="w-3.5 h-3.5" />
-            <span>VIDEO ARCHIVE</span>
+            <FolderArchive className="w-3.5 h-3.5" />
+            <span>UPLOADED ARCHIVE</span>
           </button>
 
           <button
@@ -244,6 +285,19 @@ export const Dashboard: React.FC = () => {
 
               <div className="flex items-center gap-3">
                 <button
+                  onClick={() => handleRecordLiveClip('CAM-01')}
+                  disabled={isRecordingLive}
+                  className="px-4 py-2 rounded-xl bg-rose-600/90 hover:bg-rose-500 disabled:opacity-50 text-white font-semibold text-xs flex items-center gap-2 shadow-[0_0_20px_rgba(244,63,94,0.35)] transition-all"
+                >
+                  {isRecordingLive ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Radio className="w-3.5 h-3.5 animate-pulse" />
+                  )}
+                  <span>{isRecordingLive ? 'Recording Feed...' : 'Record Live Clip'}</span>
+                </button>
+
+                <button
                   onClick={() => setShowAddModal(true)}
                   className="px-4 py-2 rounded-xl bg-[#15b89a] hover:bg-[#2dd4bf] text-slate-950 font-semibold text-xs flex items-center gap-2 shadow-[0_0_20px_rgba(21,184,154,0.3)] transition-all"
                 >
@@ -252,6 +306,25 @@ export const Dashboard: React.FC = () => {
                 </button>
               </div>
             </div>
+
+            {/* Notification Toast for Live Clip Capture */}
+            {recordNotice && (
+              <div className="p-3.5 rounded-xl bg-rose-950/70 border border-rose-800 text-rose-200 text-xs flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-2 h-2 rounded-full bg-rose-400 animate-ping" />
+                  <span>{recordNotice}</span>
+                </div>
+                <button
+                  onClick={() => {
+                    setRecordNotice(null);
+                    setActiveTab('live_archive');
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-rose-900/80 hover:bg-rose-800 text-rose-200 text-[11px] font-mono border border-rose-700 transition-colors"
+                >
+                  View in Live Archive &rarr;
+                </button>
+              </div>
+            )}
 
             {/* Empty Streams Grid State */}
             <div className="border border-dashed border-[#16393b] rounded-3xl p-16 text-center bg-[#071517]/50 flex flex-col items-center justify-center">
@@ -262,37 +335,63 @@ export const Dashboard: React.FC = () => {
                 No Active Surveillance Feeds Connected
               </h3>
               <p className="text-xs text-slate-400 max-w-md mb-6 leading-relaxed">
-                Connect your IP cameras via RTSP/ONVIF streams, or switch to the{' '}
+                Connect your IP cameras via RTSP/ONVIF streams, test record a live feed clip, or switch to the{' '}
                 <button
                   onClick={() => setActiveTab('upload')}
                   className="text-[#2dd4bf] underline hover:text-white"
                 >
                   Upload Center
                 </button>{' '}
-                to ingest recorded surveillance video archives.
+                to ingest recorded surveillance video files.
               </p>
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="px-5 py-2.5 rounded-xl bg-[#0e2a2c] hover:bg-[#133c3f] border border-[#1b4b4e] text-[#2dd4bf] text-xs font-semibold flex items-center gap-2 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Register New Camera Stream
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => handleRecordLiveClip('CAM-01')}
+                  disabled={isRecordingLive}
+                  className="px-5 py-2.5 rounded-xl bg-rose-950/80 hover:bg-rose-900 border border-rose-800 text-rose-300 text-xs font-semibold flex items-center gap-2 transition-colors disabled:opacity-50"
+                >
+                  <Radio className="w-4 h-4 text-rose-400 animate-pulse" />
+                  Record 4s Live CCTV Clip
+                </button>
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="px-5 py-2.5 rounded-xl bg-[#0e2a2c] hover:bg-[#133c3f] border border-[#1b4b4e] text-[#2dd4bf] text-xs font-semibold flex items-center gap-2 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Register New Camera Stream
+                </button>
+              </div>
             </div>
           </>
         )}
 
-        {/* TAB 2: Video Archive Library */}
-        {activeTab === 'archive' && (
+        {/* TAB 2: Live CCTV Stream Archive */}
+        {activeTab === 'live_archive' && (
           <VideoLibrary
+            sourceType="LIVE"
+            title="Live CCTV Surveillance Archive"
+            description="Continuous 24/7 stream recordings and incident event clips captured directly from CCTV feeds."
             onPlayVideo={(video) => setActiveVideo(video)}
             onNavigateToUpload={() => setActiveTab('upload')}
+            onNavigateToLive={() => setActiveTab('live')}
           />
         )}
 
-        {/* TAB 3: Upload Center */}
+        {/* TAB 3: Uploaded Surveillance Video Archive */}
+        {activeTab === 'uploaded_archive' && (
+          <VideoLibrary
+            sourceType="UPLOADED"
+            title="Uploaded Video Archive"
+            description="Manually ingested evidence clips, patrol logs, and external surveillance footage."
+            onPlayVideo={(video) => setActiveVideo(video)}
+            onNavigateToUpload={() => setActiveTab('upload')}
+            onNavigateToLive={() => setActiveTab('live')}
+          />
+        )}
+
+        {/* TAB 4: Upload Center */}
         {activeTab === 'upload' && (
-          <UploadCenter onUploadComplete={() => {}} />
+          <UploadCenter onUploadComplete={() => setActiveTab('uploaded_archive')} />
         )}
 
       </main>

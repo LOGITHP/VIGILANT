@@ -50,5 +50,18 @@
   - **FFprobe & FFmpeg Telemetry**: Native containerized `ffprobe` extracts exact stream metadata (duration, FPS, resolution, codecs, bitrate) stored into PostgreSQL `videos`. Asynchronous `ffmpeg` generates an instant surveillance thumbnail at timestamp 1.0s and uploads it to MinIO.
   - **HTTP 206 Partial Content Streaming**: Backend proxies range-sliced object streams (`get_object(offset, length)`) directly from MinIO, delivering byte-level scrubbing, timestamp jumping, and instant seek in modern HTML5 surveillance video players.
 
+## ADR-006: Segregated Surveillance Archives (Live CCTV Stream Archive vs Uploaded Video Archive)
+- **Date:** 2026-11-07
+- **Status:** Accepted
+- **Context:** Operators need clear separation between continuous 24/7 or event-triggered CCTV camera stream recordings and manually imported external evidence / offline surveillance files. Mixing both into a single unsegmented table leads to operational confusion.
+- **Decision:**
+  - **Data Model Segregation**: Added `source_type` (`LIVE` vs `UPLOADED`) to the `videos` PostgreSQL schema with Alembic migration `003_add_video_source_type.py` and indexed column lookups.
+  - **API Scoping**: Updated `GET /api/v1/videos` to accept `source_type=LIVE` or `source_type=UPLOADED`, guaranteeing completely disjoint result sets for client queries. Added `POST /api/v1/videos/live/record` for immediate camera clip ingestion.
+  - **UI/UX Segregation**: Replaced the monolithic `VIDEO ARCHIVE` with dedicated top-level navigation tabs:
+    - `LIVE ARCHIVE` (featuring pulsating red indicators, camera channel tags, live clip capture, and stream metadata).
+    - `UPLOADED ARCHIVE` (featuring uploader identity, file format details, and upload center ingestion).
+  - **Upload Routing**: Enhanced the `UploadCenter` to permit selecting whether ingested batches belong to the manual Uploaded Archive or a Live Camera Stream Dump.
+
+
 
 

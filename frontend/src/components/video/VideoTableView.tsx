@@ -44,6 +44,7 @@ export const VideoTableView: React.FC<VideoTableViewProps> = ({ videos, onPlay, 
         <thead>
           <tr className="border-b border-[#14373a] bg-[#071314]/90 text-[11px] font-mono uppercase tracking-wider text-slate-400">
             <th className="py-3 px-4">Footage / Title</th>
+            <th className="py-3 px-4">Source</th>
             <th className="py-3 px-4">Status</th>
             <th className="py-3 px-4">Resolution & FPS</th>
             <th className="py-3 px-4">Duration</th>
@@ -95,6 +96,20 @@ export const VideoTableView: React.FC<VideoTableViewProps> = ({ videos, onPlay, 
                     </p>
                   </div>
                 </div>
+              </td>
+
+              {/* Source Badge */}
+              <td className="py-3 px-4">
+                {video.source_type === 'LIVE' ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-rose-950/80 text-rose-300 border border-rose-700/60 shadow-[0_0_8px_rgba(244,63,94,0.3)]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                    LIVE REC
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-[#0b2527] text-[#2dd4bf] border border-[#16484c]">
+                    UPLOADED
+                  </span>
+                )}
               </td>
 
               {/* Status */}

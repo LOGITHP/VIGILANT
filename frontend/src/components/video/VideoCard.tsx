@@ -124,12 +124,24 @@ export const VideoCard: React.FC<VideoCardProps> = ({ video, onPlay, onDelete })
           <div className="flex items-start justify-between gap-2 mb-1.5">
             <h3
               onClick={() => video.status === 'READY' && onPlay(video)}
-              className="text-sm font-medium text-slate-100 hover:text-[#2dd4bf] transition-colors line-clamp-1 cursor-pointer"
+              className="text-sm font-medium text-slate-100 hover:text-[#2dd4bf] transition-colors line-clamp-1 cursor-pointer flex-1"
               title={video.title}
             >
               {video.title}
             </h3>
-            {getResolutionBadge()}
+            <div className="flex items-center gap-1.5 shrink-0">
+              {video.source_type === 'LIVE' ? (
+                <span className="inline-flex items-center gap-1 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-rose-950/90 text-rose-300 border border-rose-600/70 shadow-[0_0_8px_rgba(244,63,94,0.35)]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                  LIVE
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#0b2527] text-[#2dd4bf] border border-[#16484c]">
+                  UPLOAD
+                </span>
+              )}
+              {getResolutionBadge()}
+            </div>
           </div>
 
           <p className="text-xs text-slate-400 line-clamp-1 mb-3 font-mono">

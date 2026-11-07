@@ -82,3 +82,4 @@ def test_stream_byte_range():
             length=100
         )
         mock_response.close.assert_called_once()
+

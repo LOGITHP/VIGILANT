@@ -1,5 +1,7 @@
+import os
 import re
 import uuid
+import asyncio
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
 
@@ -23,7 +25,7 @@ from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_db, get_current_user
 from app.models.user import User
-from app.models.video import Video, VideoUploadSession, VideoChunk, VideoStatus
+from app.models.video import Video, VideoUploadSession, VideoChunk, VideoStatus, VideoSourceType
 from app.services.storage_service import StorageService
 from app.services.media_service import MediaProcessingService
 from app.schemas.video import (
@@ -32,6 +34,7 @@ from app.schemas.video import (
     ChunkUploadResponse,
     UploadStatusResponse,
     UploadCompleteRequest,
+    LiveCaptureRequest,
     VideoResponse,
     VideoListResponse
 )
@@ -54,6 +57,7 @@ def _format_video_response(video: Video, request: Request, uploader_email: Optio
     return VideoResponse(
         id=video.id,
         title=video.title,
+        source_type=getattr(video, "source_type", "UPLOADED") or "UPLOADED",
         description=video.description,
         original_filename=video.original_filename,
         file_size=video.file_size,
@@ -97,6 +101,7 @@ async def init_video_upload(
     video = Video(
         id=video_id,
         title=body.title,
+        source_type=body.source_type.upper() if body.source_type else "UPLOADED",
         description=body.description,
         original_filename=body.filename,
         file_size=body.file_size,
@@ -310,11 +315,16 @@ async def list_videos(
     limit: int = Query(12, ge=1, le=100),
     q: Optional[str] = Query(None, description="Search by title, description or filename"),
     status: Optional[str] = Query(None, description="Filter by status (READY, PROCESSING, etc.)"),
+    source_type: Optional[str] = Query(None, description="Filter by source type (LIVE or UPLOADED)"),
     codec: Optional[str] = Query(None, description="Filter by video codec"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     query = select(Video)
+
+    # Source type filter (LIVE vs UPLOADED)
+    if source_type and source_type.upper() != "ALL":
+        query = query.where(Video.source_type == source_type.upper())
 
     # Search filter
     if q:
@@ -483,3 +493,92 @@ async def get_video_thumbnail(
         "Cache-Control": "public, max-age=86400",
     }
     return StreamingResponse(thumb_gen, headers=headers)
+
+
+@router.post(
+    "/live/record",
+    response_model=VideoResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Capture or simulate live CCTV camera stream recording"
+)
+async def record_live_camera_feed(
+    body: LiveCaptureRequest,
+    background_tasks: BackgroundTasks,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    video_id = uuid.uuid4()
+    session_id = uuid.uuid4()
+    timestamp_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    camera_clean = re.sub(r'[^a-zA-Z0-9_-]', '_', body.camera_id)
+    filename = f"live_{camera_clean}_{timestamp_str}.mp4"
+    s3_key = f"videos/{video_id}/{filename}"
+
+    temp_dir = StorageService.get_upload_temp_dir(str(session_id))
+    os.makedirs(temp_dir, exist_ok=True)
+    temp_clip_path = os.path.join(temp_dir, filename)
+
+    duration = min(max(body.duration_seconds, 1), 60)
+    title = body.title or f"{body.camera_id} Live Capture ({datetime.now(timezone.utc).strftime('%H:%M:%S UTC')})"
+
+    cmd = [
+        "ffmpeg", "-y",
+        "-f", "lavfi",
+        "-i", f"testsrc=duration={duration}:size=1280x720:rate=30",
+        "-c:v", "libx264",
+        "-pix_fmt", "yuv420p",
+        temp_clip_path
+    ]
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        await proc.communicate()
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to execute camera recording command: {exc}"
+        )
+
+    if not os.path.exists(temp_clip_path) or os.path.getsize(temp_clip_path) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to produce camera recording file"
+        )
+
+    file_size = os.path.getsize(temp_clip_path)
+    file_sha256 = StorageService.compute_file_sha256(temp_clip_path)
+
+    # Ingest to MinIO
+    StorageService.upload_file_to_s3(temp_clip_path, s3_key, content_type="video/mp4")
+
+    # Save Video record
+    video = Video(
+        id=video_id,
+        title=title,
+        source_type=VideoSourceType.LIVE,
+        description=body.description,
+        original_filename=filename,
+        file_size=file_size,
+        content_type="video/mp4",
+        sha256_checksum=file_sha256,
+        s3_key=s3_key,
+        status=VideoStatus.PROCESSING,
+        uploaded_by_id=current_user.id
+    )
+    db.add(video)
+    await db.commit()
+    await db.refresh(video)
+
+    background_tasks.add_task(
+        MediaProcessingService.process_video_post_upload,
+        str(video_id),
+        str(session_id),
+        temp_clip_path
+    )
+
+    return _format_video_response(video, request, uploader_email=current_user.email)
+

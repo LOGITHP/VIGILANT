@@ -36,6 +36,13 @@
 - [x] Task 9: Frontend Surveillance Video Player Modal (Scrub bar, jump keys, variable speed 0.5x-2.0x, telemetry drawer)
 - [x] Task 10: Integrated Top Navigation & Main View Integration (Tabs: LIVE CCTV, VIDEO ARCHIVE, UPLOAD CENTER)
 - [x] Task 11: End-to-End Containerization, Testing & Documentation (21/21 backend pytest suite + 9/9 live Docker container tests)
+- [x] Task 12: Archive Segregation (Live CCTV Stream Archive vs Uploaded Video Archive):
+  - Database schema: added `source_type` (`LIVE` vs `UPLOADED`) via Alembic migration `003_add_video_source_type.py`.
+  - Backend API: added `source_type` query filtering and `POST /api/v1/videos/live/record` for live camera clip capture.
+  - UI Navigation: segregated tabs into `LIVE CCTV`, `LIVE ARCHIVE` (red indicator), `UPLOADED ARCHIVE`, and `UPLOAD CENTER`.
+  - Ingestion routing: added destination archive selector in `UploadCenter`.
+  - Verification: confirmed strict isolation between live recordings and uploaded videos via live container tests.
+
 
 
 

@@ -17,6 +17,11 @@ class VideoStatus:
     FAILED = "FAILED"
 
 
+class VideoSourceType:
+    LIVE = "LIVE"
+    UPLOADED = "UPLOADED"
+
+
 class Video(Base):
     __tablename__ = "videos"
 
@@ -28,6 +33,13 @@ class Video(Base):
     title: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
+        index=True
+    )
+    source_type: Mapped[str] = mapped_column(
+        String(30),
+        nullable=False,
+        default=VideoSourceType.UPLOADED,
+        server_default="UPLOADED",
         index=True
     )
     description: Mapped[Optional[str]] = mapped_column(

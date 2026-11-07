@@ -186,3 +186,4 @@ When an upload finishes:
   - Technical telemetry badge: Resolution (`1920x1080`), FPS (`30 FPS`), Codecs (`H.264 / AAC`), Bitrate (`4.2 Mbps`), and File Size.
   - Fullscreen toggle and volume slider.
   - Video download button (for authorized operators).
+

@@ -40,7 +40,7 @@ export class ResumableChunkUploader {
     this.isPaused = false;
   }
 
-  public async start(title: string, description?: string): Promise<Video> {
+  public async start(title: string, description?: string, sourceType: 'LIVE' | 'UPLOADED' = 'UPLOADED'): Promise<Video> {
     const totalBytes = this.file.size;
     const totalChunks = Math.ceil(totalBytes / CHUNK_SIZE);
     let uploadedChunksSet = new Set<number>();
@@ -63,6 +63,7 @@ export class ResumableChunkUploader {
         content_type: this.file.type || 'video/mp4',
         total_chunks: totalChunks,
         chunk_size: CHUNK_SIZE,
+        source_type: sourceType,
         description: description || undefined,
       });
 
@@ -172,3 +173,4 @@ export class ResumableChunkUploader {
     return video;
   }
 }
+

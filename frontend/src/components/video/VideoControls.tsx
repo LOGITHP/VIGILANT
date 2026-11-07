@@ -204,3 +204,4 @@ export const VideoControls: React.FC<VideoControlsProps> = ({
     </div>
   );
 };
+

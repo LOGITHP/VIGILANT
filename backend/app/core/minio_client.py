@@ -49,3 +49,4 @@ class MinioClientManager:
 
 def get_minio_client() -> Minio:
     return MinioClientManager.get_client()
+

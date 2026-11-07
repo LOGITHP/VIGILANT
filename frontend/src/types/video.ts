@@ -1,8 +1,10 @@
 export type VideoStatus = 'UPLOADING' | 'PROCESSING' | 'READY' | 'FAILED';
+export type VideoSourceType = 'LIVE' | 'UPLOADED';
 
 export interface Video {
   id: string;
   title: string;
+  source_type: VideoSourceType;
   description?: string | null;
   original_filename: string;
   file_size: number;
@@ -37,6 +39,7 @@ export interface VideoFilterParams {
   limit?: number;
   q?: string;
   status?: string;
+  source_type?: 'LIVE' | 'UPLOADED' | 'ALL';
   codec?: string;
 }
 
@@ -47,8 +50,16 @@ export interface UploadInitRequest {
   content_type: string;
   total_chunks: number;
   chunk_size: number;
+  source_type?: VideoSourceType;
   description?: string;
   expected_sha256?: string;
+}
+
+export interface LiveCaptureRequest {
+  camera_id: string;
+  title?: string;
+  duration_seconds?: number;
+  description?: string;
 }
 
 export interface UploadInitResponse {
@@ -71,6 +82,7 @@ export interface UploadItem {
   id: string;
   file: File;
   title: string;
+  sourceType?: VideoSourceType;
   description: string;
   status: 'QUEUED' | 'CALCULATING_HASH' | 'UPLOADING' | 'ASSEMBLING' | 'PROCESSING' | 'READY' | 'FAILED' | 'PAUSED';
   progress: number; // 0 - 100
@@ -83,3 +95,4 @@ export interface UploadItem {
   errorMessage?: string;
   videoId?: string;
 }
+
