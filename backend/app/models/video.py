@@ -126,7 +126,7 @@ class Video(Base):
     )
 
     # Relationships
-    uploader: Mapped[Optional["User"]] = relationship(lazy="joined")
+    uploader: Mapped[Optional["User"]] = relationship(lazy="selectin")
     upload_sessions: Mapped[List["VideoUploadSession"]] = relationship(
         back_populates="video",
         cascade="all, delete-orphan",
