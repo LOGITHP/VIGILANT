@@ -19,6 +19,27 @@ services:
     networks:
       - vigilant-net
 
+  minio:
+    image: minio/minio:RELEASE.2024-11-07T00-52-20Z
+    container_name: vigilant_minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin_secret_key_2026
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - vigilant-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/live || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
       context: ./backend
@@ -27,6 +48,8 @@ services:
     restart: unless-stopped
     depends_on:
       db:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/vigilant_db
@@ -37,6 +60,12 @@ services:
       INITIAL_ADMIN_EMAIL: cctv@gmail.com
       INITIAL_ADMIN_PASSWORD: 123456789
       BACKEND_CORS_ORIGINS: '["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000", "*"]'
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin_secret_key_2026
+      MINIO_SECURE: "False"
+      MINIO_BUCKET_VIDEOS: vigilant-videos
+      MINIO_BUCKET_THUMBNAILS: vigilant-thumbnails
     ports:
       - "8000:8000"
     networks:
@@ -60,6 +89,8 @@ services:
 volumes:
   postgres_data:
     name: vigilant_postgres_data
+  minio_data:
+    name: vigilant_minio_data
 
 networks:
   vigilant-net:

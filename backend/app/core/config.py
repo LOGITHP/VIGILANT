@@ -30,6 +30,17 @@ class Settings(BaseSettings):
         "*"
     ]
 
+    # MinIO Object Storage
+    MINIO_ENDPOINT: str = "localhost:9000"
+    MINIO_ACCESS_KEY: str = "minioadmin"
+    MINIO_SECRET_KEY: str = "minioadmin_secret_key_2026"
+    MINIO_SECURE: bool = False
+    MINIO_BUCKET_VIDEOS: str = "vigilant-videos"
+    MINIO_BUCKET_THUMBNAILS: str = "vigilant-thumbnails"
+
+    # Temporary Chunk Upload Directory
+    UPLOAD_TEMP_DIR: str = "/tmp/vigilant_uploads"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
