@@ -25,9 +25,18 @@ from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_db, get_current_user
 from app.models.user import User
-from app.models.video import Video, VideoUploadSession, VideoChunk, VideoStatus, VideoSourceType
+from app.models.video import (
+    Video,
+    VideoUploadSession,
+    VideoChunk,
+    VideoStatus,
+    VideoSourceType,
+    VideoInspection,
+    VideoStream
+)
 from app.services.storage_service import StorageService
 from app.services.media_service import MediaProcessingService
+from app.services.metadata_extractor import MetadataInspectionService
 from app.schemas.video import (
     VideoUploadInitRequest,
     VideoUploadInitResponse,
@@ -37,6 +46,14 @@ from app.schemas.video import (
     LiveCaptureRequest,
     VideoResponse,
     VideoListResponse
+)
+from app.schemas.inspection import (
+    FileInfoSchema,
+    ContainerInfoSchema,
+    VideoStreamInfoSchema,
+    AudioStreamInfoSchema,
+    StreamSummarySchema,
+    VideoInspectionReportResponse
 )
 
 router = APIRouter(prefix="/videos", tags=["Surveillance Videos"])
@@ -581,4 +598,153 @@ async def record_live_camera_feed(
     )
 
     return _format_video_response(video, request, uploader_email=current_user.email)
+
+
+@router.get(
+    "/{video_id}/inspection",
+    response_model=VideoInspectionReportResponse,
+    summary="Retrieve full 5-category FFprobe metadata inspection report"
+)
+async def get_video_inspection(
+    video_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    stmt = (
+        select(Video)
+        .where(Video.id == video_id)
+        .options(selectinload(Video.inspections).selectinload(VideoInspection.streams))
+    )
+    res = await db.execute(stmt)
+    video = res.scalar_one_or_none()
+    if not video:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Video not found")
+
+    if not video.inspections:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Media inspection has not been completed for this video yet"
+        )
+
+    insp: VideoInspection = video.inspections[0]
+
+    # Category A: File Info
+    file_info = FileInfoSchema(
+        original_filename=video.original_filename,
+        file_size=insp.file_size,
+        file_format=insp.file_format,
+        sha256_checksum=insp.sha256_checksum,
+        upload_timestamp=video.created_at
+    )
+
+    # Category B: Container Info
+    container_info = ContainerInfoSchema(
+        format_name=insp.format_name,
+        format_long_name=insp.format_long_name,
+        duration_seconds=insp.duration_seconds,
+        bitrate=insp.bitrate,
+        start_time=insp.start_time,
+        container_size=insp.container_size
+    )
+
+    # Category C: Video Stream Info
+    video_stream = None
+    if insp.primary_video_stream_index is not None and insp.video_codec:
+        video_stream = VideoStreamInfoSchema(
+            stream_index=insp.primary_video_stream_index,
+            codec_name=insp.video_codec,
+            codec_long_name=insp.video_codec_long_name,
+            width=insp.width or 0,
+            height=insp.height or 0,
+            fps=insp.fps,
+            rational_fps=insp.rational_fps,
+            pixel_format=insp.pixel_format,
+            time_base=insp.time_base,
+            start_timestamp=insp.video_start_time,
+            duration_seconds=insp.video_duration_seconds or insp.duration_seconds,
+            reported_frame_count=insp.reported_frame_count
+        )
+
+    # Category D: Audio Stream Info
+    audio_stream = AudioStreamInfoSchema(
+        has_audio=insp.has_audio,
+        stream_index=insp.primary_audio_stream_index,
+        codec_name=insp.audio_codec,
+        sample_rate=insp.audio_sample_rate,
+        channels=insp.audio_channels,
+        channel_layout=insp.audio_channel_layout,
+        duration_seconds=insp.audio_duration_seconds
+    )
+
+    # Category E: Stream Catalog
+    all_streams = [
+        StreamSummarySchema(
+            stream_index=s.stream_index,
+            stream_type=s.stream_type,
+            codec_name=s.codec_name,
+            codec_long_name=s.codec_long_name,
+            is_primary=s.is_primary,
+            is_default=s.is_default,
+            is_attached_pic=s.is_attached_pic,
+            width=s.width,
+            height=s.height,
+            fps=s.fps,
+            rational_fps=s.rational_fps,
+            pixel_format=s.pixel_format,
+            time_base=s.time_base,
+            sample_rate=s.sample_rate,
+            channels=s.channels,
+            channel_layout=s.channel_layout,
+            duration_seconds=s.duration_seconds,
+            bitrate=s.bitrate,
+            disposition=s.disposition,
+            stream_metadata=s.stream_metadata
+        )
+        for s in (insp.streams or [])
+    ]
+
+    return VideoInspectionReportResponse(
+        inspection_id=insp.id,
+        video_id=video.id,
+        extractor_version=insp.extractor_version,
+        metadata_status=insp.metadata_status,
+        validation_status=insp.validation_status,
+        error_message=insp.error_message,
+        inspected_at=insp.created_at,
+        file_info=file_info,
+        container_info=container_info,
+        video_stream=video_stream,
+        audio_stream=audio_stream,
+        all_streams=all_streams,
+        raw_metadata=insp.raw_ffprobe_json
+    )
+
+
+@router.post(
+    "/{video_id}/inspect",
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Trigger asynchronous FFprobe media metadata inspection"
+)
+async def trigger_video_inspection(
+    video_id: uuid.UUID,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    stmt = select(Video).where(Video.id == video_id)
+    res = await db.execute(stmt)
+    video = res.scalar_one_or_none()
+    if not video:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Video not found")
+
+    video.metadata_status = "EXTRACTING"
+    await db.commit()
+
+    background_tasks.add_task(MetadataInspectionService.inspect_video, video.id)
+    return {
+        "message": "Media metadata inspection job scheduled",
+        "video_id": str(video.id),
+        "status": "EXTRACTING"
+    }
+
 

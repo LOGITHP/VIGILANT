@@ -62,6 +62,18 @@
     - `UPLOADED ARCHIVE` (featuring uploader identity, file format details, and upload center ingestion).
   - **Upload Routing**: Enhanced the `UploadCenter` to permit selecting whether ingested batches belong to the manual Uploaded Archive or a Live Camera Stream Dump.
 
+## ADR-007: Phase 3.1.1 FFprobe Metadata Extractor, Primary Stream Selection & Dual State Machine
+- **Date:** 2026-11-07
+- **Status:** Accepted
+- **Context:** Raw container metadata extraction must systematically classify telemetry across 5 distinct categories (File Info, Container Info, Primary Video Stream, Primary Audio Stream, Stream Catalog). Furthermore, CCTV containers frequently bundle attached cover art/poster JPEGs as stream 0, which can mislead naive stream selection. Crucially, successful header inspection must never imply full media validation (corrupted subsequent frames require full decode validation in Milestone 3.1.2).
+- **Decision:**
+  - **5-Category Normalized Telemetry**: Standardized output across FileInfo (SHA-256, size, format), ContainerInfo (format, duration, bitrate, start time), VideoStreamInfo (codec, dimensions, rational FPS, pixel format, time base), AudioStreamInfo (codec, sample rate, channels), and Stream Catalog (all streams with dispositions).
+  - **Intelligent Stream Selector**: Explicitly ignores static attached pictures (`disposition.attached_pic == 1`) and resolves the true continuous video feed prioritizing default flags, then highest pixel count ($width \times height$).
+  - **Dual State Machine**: Retained strict segregation between `metadata_status` (`PENDING`, `EXTRACTING`, `COMPLETED`, `FAILED`) and `validation_status` (`PENDING`, `VALIDATING`, `VALIDATED`, `INVALID`), ensuring header extraction does not falsely mark corrupted files as validated before Milestones 3.1.2/3.1.3.
+  - **Resource Protection**: Bounded concurrency to 2 simultaneous inspections via `asyncio.Semaphore(2)`, 120-second timeout, and ephemeral sandboxing with guaranteed cleanup.
+  - **Database & UI Integration**: PostgreSQL `video_inspections` and `video_streams` schemas with cascading deletes, REST endpoints (`GET /videos/{id}/inspection`, `POST /videos/{id}/inspect`), and a dedicated 5-category surveillance metadata inspection drawer in React.
+
+
 
 
 

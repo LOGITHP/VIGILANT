@@ -24,6 +24,7 @@ import { videoApi } from '../services/videoApi';
 import { VideoLibrary } from '../components/video/VideoLibrary';
 import { UploadCenter } from '../components/video/UploadCenter';
 import { VideoPlayerModal } from '../components/video/VideoPlayerModal';
+import { VideoInspectionDrawer } from '../components/video/VideoInspectionDrawer';
 
 export const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
@@ -33,6 +34,9 @@ export const Dashboard: React.FC = () => {
 
   // Active playing video modal
   const [activeVideo, setActiveVideo] = useState<Video | null>(null);
+
+  // Active media inspection manifest drawer
+  const [inspectedVideo, setInspectedVideo] = useState<Video | null>(null);
 
   // Clock
   const [currentTime, setCurrentTime] = useState<string>('');
@@ -372,6 +376,7 @@ export const Dashboard: React.FC = () => {
             title="Live CCTV Surveillance Archive"
             description="Continuous 24/7 stream recordings and incident event clips captured directly from CCTV feeds."
             onPlayVideo={(video) => setActiveVideo(video)}
+            onInspectVideo={(video) => setInspectedVideo(video)}
             onNavigateToUpload={() => setActiveTab('upload')}
             onNavigateToLive={() => setActiveTab('live')}
           />
@@ -384,6 +389,7 @@ export const Dashboard: React.FC = () => {
             title="Uploaded Video Archive"
             description="Manually ingested evidence clips, patrol logs, and external surveillance footage."
             onPlayVideo={(video) => setActiveVideo(video)}
+            onInspectVideo={(video) => setInspectedVideo(video)}
             onNavigateToUpload={() => setActiveTab('upload')}
             onNavigateToLive={() => setActiveTab('live')}
           />
@@ -400,6 +406,13 @@ export const Dashboard: React.FC = () => {
       <VideoPlayerModal
         video={activeVideo}
         onClose={() => setActiveVideo(null)}
+      />
+
+      {/* Video Inspection Drawer (Triggerable from card, table, or player) */}
+      <VideoInspectionDrawer
+        video={inspectedVideo}
+        isOpen={!!inspectedVideo}
+        onClose={() => setInspectedVideo(null)}
       />
 
       {/* Add Camera Stream Modal */}

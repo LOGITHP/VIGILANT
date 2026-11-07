@@ -22,6 +22,21 @@ class VideoSourceType:
     UPLOADED = "UPLOADED"
 
 
+class MetadataStatus:
+    PENDING = "PENDING"
+    EXTRACTING = "EXTRACTING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+
+
+class ValidationStatus:
+    PENDING = "PENDING"
+    VALIDATING = "VALIDATING"
+    VALIDATED = "VALIDATED"
+    INVALID = "INVALID"
+
+
+
 class Video(Base):
     __tablename__ = "videos"
 
@@ -81,6 +96,20 @@ class Video(Base):
     error_message: Mapped[Optional[str]] = mapped_column(
         Text,
         nullable=True
+    )
+    metadata_status: Mapped[str] = mapped_column(
+        String(30),
+        nullable=False,
+        default=MetadataStatus.PENDING,
+        server_default="PENDING",
+        index=True
+    )
+    validation_status: Mapped[str] = mapped_column(
+        String(30),
+        nullable=False,
+        default=ValidationStatus.PENDING,
+        server_default="PENDING",
+        index=True
     )
 
     # FFprobe Extracted Telemetry
@@ -143,6 +172,12 @@ class Video(Base):
         back_populates="video",
         cascade="all, delete-orphan",
         lazy="selectin"
+    )
+    inspections: Mapped[List["VideoInspection"]] = relationship(
+        back_populates="video",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+        order_by="desc(VideoInspection.created_at)"
     )
 
 
@@ -240,3 +275,300 @@ class VideoChunk(Base):
 
     # Relationships
     upload_session: Mapped["VideoUploadSession"] = relationship(back_populates="chunks")
+
+
+class VideoInspection(Base):
+    __tablename__ = "video_inspections"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4
+    )
+    video_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("videos.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    extractor_version: Mapped[str] = mapped_column(
+        String(30),
+        nullable=False,
+        default="1.0.0"
+    )
+    metadata_status: Mapped[str] = mapped_column(
+        String(30),
+        nullable=False,
+        default=MetadataStatus.EXTRACTING,
+        index=True
+    )
+    validation_status: Mapped[str] = mapped_column(
+        String(30),
+        nullable=False,
+        default=ValidationStatus.PENDING,
+        index=True
+    )
+    error_message: Mapped[Optional[str]] = mapped_column(
+        Text,
+        nullable=True
+    )
+
+    # Category A: File Information
+    file_size: Mapped[int] = mapped_column(
+        BigInteger,
+        nullable=False
+    )
+    file_format: Mapped[Optional[str]] = mapped_column(
+        String(100),
+        nullable=True
+    )
+    sha256_checksum: Mapped[Optional[str]] = mapped_column(
+        String(64),
+        nullable=True
+    )
+
+    # Category B: Container Information
+    format_name: Mapped[Optional[str]] = mapped_column(
+        String(100),
+        nullable=True
+    )
+    format_long_name: Mapped[Optional[str]] = mapped_column(
+        String(255),
+        nullable=True
+    )
+    duration_seconds: Mapped[Optional[float]] = mapped_column(
+        Float,
+        nullable=True
+    )
+    bitrate: Mapped[Optional[int]] = mapped_column(
+        BigInteger,
+        nullable=True
+    )
+    start_time: Mapped[Optional[float]] = mapped_column(
+        Float,
+        nullable=True
+    )
+    container_size: Mapped[Optional[int]] = mapped_column(
+        BigInteger,
+        nullable=True
+    )
+
+    # Category C: Primary Video Stream
+    primary_video_stream_index: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True
+    )
+    video_codec: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        nullable=True
+    )
+    video_codec_long_name: Mapped[Optional[str]] = mapped_column(
+        String(255),
+        nullable=True
+    )
+    width: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True
+    )
+    height: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True
+    )
+    fps: Mapped[Optional[float]] = mapped_column(
+        Float,
+        nullable=True
+    )
+    rational_fps: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        nullable=True
+    )
+    pixel_format: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        nullable=True
+    )
+    time_base: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        nullable=True
+    )
+    video_start_time: Mapped[Optional[float]] = mapped_column(
+        Float,
+        nullable=True
+    )
+    video_duration_seconds: Mapped[Optional[float]] = mapped_column(
+        Float,
+        nullable=True
+    )
+    reported_frame_count: Mapped[Optional[int]] = mapped_column(
+        BigInteger,
+        nullable=True
+    )
+
+    # Category D: Primary Audio Stream
+    has_audio: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False
+    )
+    primary_audio_stream_index: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True
+    )
+    audio_codec: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        nullable=True
+    )
+    audio_sample_rate: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True
+    )
+    audio_channels: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True
+    )
+    audio_channel_layout: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        nullable=True
+    )
+    audio_duration_seconds: Mapped[Optional[float]] = mapped_column(
+        Float,
+        nullable=True
+    )
+
+    # Category E / Raw
+    raw_ffprobe_json: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+        JSON,
+        nullable=True
+    )
+
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False
+    )
+
+    # Relationships
+    video: Mapped["Video"] = relationship(back_populates="inspections")
+    streams: Mapped[List["VideoStream"]] = relationship(
+        back_populates="inspection",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+        order_by="VideoStream.stream_index"
+    )
+
+
+class VideoStream(Base):
+    __tablename__ = "video_streams"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4
+    )
+    inspection_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("video_inspections.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    stream_index: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False
+    )
+    stream_type: Mapped[str] = mapped_column(
+        String(30),
+        nullable=False,
+        index=True
+    )
+    codec_name: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        nullable=True
+    )
+    codec_long_name: Mapped[Optional[str]] = mapped_column(
+        String(255),
+        nullable=True
+    )
+    is_primary: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False
+    )
+    is_default: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False
+    )
+    is_attached_pic: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False
+    )
+
+    # Stream attributes
+    width: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True
+    )
+    height: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True
+    )
+    fps: Mapped[Optional[float]] = mapped_column(
+        Float,
+        nullable=True
+    )
+    rational_fps: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        nullable=True
+    )
+    pixel_format: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        nullable=True
+    )
+    time_base: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        nullable=True
+    )
+    sample_rate: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True
+    )
+    channels: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True
+    )
+    channel_layout: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        nullable=True
+    )
+    duration_seconds: Mapped[Optional[float]] = mapped_column(
+        Float,
+        nullable=True
+    )
+    bitrate: Mapped[Optional[int]] = mapped_column(
+        BigInteger,
+        nullable=True
+    )
+    disposition: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+        JSON,
+        nullable=True
+    )
+    stream_metadata: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+        JSON,
+        nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False
+    )
+
+    # Relationships
+    inspection: Mapped["VideoInspection"] = relationship(back_populates="streams")
+

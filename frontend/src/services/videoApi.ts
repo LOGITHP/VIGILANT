@@ -5,7 +5,8 @@ import {
   VideoFilterParams,
   UploadInitRequest,
   UploadInitResponse,
-  UploadStatusResponse
+  UploadStatusResponse,
+  VideoInspectionReport
 } from '../types/video';
 
 export const videoApi = {
@@ -65,6 +66,16 @@ export const videoApi = {
 
   recordLiveFeed: async (payload: { camera_id: string; title?: string; duration_seconds?: number; description?: string }): Promise<Video> => {
     const res = await apiClient.post<Video>('/videos/live/record', payload);
+    return res.data;
+  },
+
+  getInspectionReport: async (videoId: string): Promise<VideoInspectionReport> => {
+    const res = await apiClient.get<VideoInspectionReport>(`/videos/${videoId}/inspection`);
+    return res.data;
+  },
+
+  triggerInspection: async (videoId: string): Promise<{ message: string; status: string }> => {
+    const res = await apiClient.post<{ message: string; status: string }>(`/videos/${videoId}/inspect`);
     return res.data;
   },
 

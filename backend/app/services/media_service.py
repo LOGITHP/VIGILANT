@@ -183,6 +183,14 @@ class MediaProcessingService:
                 await db.commit()
                 logger.info("Video %s successfully processed and marked READY", video_id)
 
+                # 3. Execute Phase 3.1.1 full structured media inspection
+                try:
+                    from app.services.metadata_extractor import MetadataInspectionService
+                    await MetadataInspectionService.inspect_video(video.id, staged_file_path=assembled_path)
+                    logger.info("Video %s completed full 5-category metadata inspection", video_id)
+                except Exception as insp_exc:
+                    logger.warning("Secondary metadata inspection failed for video %s: %s", video_id, insp_exc)
+
             except Exception as exc:
                 logger.error("Media processing failed for video %s: %s", video_id, exc)
                 video.status = VideoStatus.FAILED

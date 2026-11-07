@@ -5,7 +5,8 @@ import {
   HardDrive,
   Trash2,
   AlertTriangle,
-  Loader2
+  Loader2,
+  FileSearch
 } from 'lucide-react';
 import { Video } from '../../types/video';
 
@@ -13,9 +14,10 @@ interface VideoCardProps {
   video: Video;
   onPlay: (video: Video) => void;
   onDelete: (id: string) => void;
+  onInspect?: (video: Video) => void;
 }
 
-export const VideoCard: React.FC<VideoCardProps> = ({ video, onPlay, onDelete }) => {
+export const VideoCard: React.FC<VideoCardProps> = ({ video, onPlay, onDelete, onInspect }) => {
   const formatDuration = (seconds?: number | null): string => {
     if (!seconds) return '--:--';
     const hrs = Math.floor(seconds / 3600);
@@ -163,18 +165,32 @@ export const VideoCard: React.FC<VideoCardProps> = ({ video, onPlay, onDelete })
             )}
           </div>
 
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (confirm(`Delete surveillance footage "${video.title}"?`)) {
-                onDelete(video.id);
-              }
-            }}
-            title="Delete Video"
-            className="p-1 rounded text-slate-500 hover:text-red-400 transition-colors"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
+          <div className="flex items-center gap-1">
+            {onInspect && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onInspect(video);
+                }}
+                title="Inspect Metadata & Stream Manifest"
+                className="p-1 rounded text-slate-400 hover:text-[#2dd4bf] hover:bg-[#0e2a2c] transition-colors"
+              >
+                <FileSearch className="w-3.5 h-3.5" />
+              </button>
+            )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (confirm(`Delete surveillance footage "${video.title}"?`)) {
+                  onDelete(video.id);
+                }
+              }}
+              title="Delete Video"
+              className="p-1 rounded text-slate-500 hover:text-red-400 hover:bg-red-950/40 transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

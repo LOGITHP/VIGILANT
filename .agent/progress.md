@@ -43,6 +43,23 @@
   - Ingestion routing: added destination archive selector in `UploadCenter`.
   - Verification: confirmed strict isolation between live recordings and uploaded videos via live container tests.
 
+## Phase 3: Video Preprocessing & Media Inspection
+### Milestone 3.1.1: FFprobe Metadata Extractor & Media Inspection
+- [x] Technical Specification Document (`docs/vigilant-video-preprocessing-design.md`)
+- [x] Implementation Plan (`docs/vigilant-video-preprocessing-plan.md`)
+- [x] Task 1: Database Models & Alembic Schema Migration (`video_inspections`, `video_streams` with cascade delete and indexing)
+- [x] Task 2: Pydantic Normalization Schemas (5 information categories: FileInfo, ContainerInfo, VideoStreamInfo, AudioStreamInfo, StreamCatalog)
+- [x] Task 3: Stream Selection & Rational Number Normalizer (Cover art filtering `attached_pic == 0`, resolution & default tiebreakers, rational FPS parsing)
+- [x] Task 4: Media Inspection Worker Service (`asyncio.Semaphore(2)` bounded concurrency, 120s timeout, ephemeral MinIO retrieval, guaranteed cleanup)
+- [x] Task 5: FastAPI REST Endpoints (`GET /videos/{id}/inspection`, `POST /videos/{id}/inspect`)
+- [x] Task 6: Frontend Inspection Manifest Drawer (`VideoInspectionDrawer.tsx` with 5-category breakdown, dual status badges, raw FFprobe JSON viewer, wired to cards, tables, and player)
+- [x] Task 7: Containerization, Testing & Live Integration Verification:
+  - 29/29 Pytest tests passed (100% test suite success inside Docker).
+  - End-to-end integration test (`scripts/test_live_inspection.py`) executed against live Docker stack: live clip recording, automatic FFprobe dissection, 5-category verification, state segregation (`metadata_status="COMPLETED"`, `validation_status="PENDING"`), and on-demand re-probing (`POST /inspect`).
+  - Frontend TypeScript compile verified (0 errors).
+
+
+
 
 
 

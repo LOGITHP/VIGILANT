@@ -1,14 +1,15 @@
 import React from 'react';
-import { Play, Trash2, Film, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
+import { Play, Trash2, Film, CheckCircle2, AlertTriangle, Loader2, FileSearch } from 'lucide-react';
 import { Video } from '../../types/video';
 
 interface VideoTableViewProps {
   videos: Video[];
   onPlay: (video: Video) => void;
   onDelete: (id: string) => void;
+  onInspect?: (video: Video) => void;
 }
 
-export const VideoTableView: React.FC<VideoTableViewProps> = ({ videos, onPlay, onDelete }) => {
+export const VideoTableView: React.FC<VideoTableViewProps> = ({ videos, onPlay, onDelete, onInspect }) => {
   const formatDuration = (seconds?: number | null): string => {
     if (!seconds) return '--:--';
     const hrs = Math.floor(seconds / 3600);
@@ -177,6 +178,15 @@ export const VideoTableView: React.FC<VideoTableViewProps> = ({ videos, onPlay, 
               {/* Actions */}
               <td className="py-3 px-4 text-right">
                 <div className="flex items-center justify-end gap-2">
+                  {onInspect && (
+                    <button
+                      onClick={() => onInspect(video)}
+                      className="p-1.5 rounded-lg bg-[#0e2a2c] hover:bg-[#164245] text-[#2dd4bf] hover:text-[#5eead4] transition-colors"
+                      title="Inspect Metadata & Stream Manifest"
+                    >
+                      <FileSearch className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                   {video.status === 'READY' && (
                     <button
                       onClick={() => onPlay(video)}

@@ -18,6 +18,7 @@ import { VideoTableView } from './VideoTableView';
 
 interface VideoLibraryProps {
   onPlayVideo: (video: Video) => void;
+  onInspectVideo?: (video: Video) => void;
   onNavigateToUpload: () => void;
   onNavigateToLive?: () => void;
   sourceType?: VideoSourceType | 'ALL';
@@ -28,6 +29,7 @@ interface VideoLibraryProps {
 
 export const VideoLibrary: React.FC<VideoLibraryProps> = ({
   onPlayVideo,
+  onInspectVideo,
   onNavigateToUpload,
   onNavigateToLive,
   sourceType = 'ALL',
@@ -225,6 +227,7 @@ export const VideoLibrary: React.FC<VideoLibraryProps> = ({
                   video={video}
                   onPlay={onPlayVideo}
                   onDelete={handleDelete}
+                  onInspect={onInspectVideo}
                 />
               ))}
             </div>
@@ -233,6 +236,7 @@ export const VideoLibrary: React.FC<VideoLibraryProps> = ({
               videos={videos}
               onPlay={onPlayVideo}
               onDelete={handleDelete}
+              onInspect={onInspectVideo}
             />
           )}
 

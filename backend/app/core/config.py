@@ -41,6 +41,11 @@ class Settings(BaseSettings):
     # Temporary Chunk Upload Directory
     UPLOAD_TEMP_DIR: str = "/tmp/vigilant_uploads"
 
+    # Media Inspection & Preprocessing Limits
+    MAX_CONCURRENT_INSPECTIONS: int = 2
+    FFPROBE_TIMEOUT_SECONDS: int = 120
+    INSPECTION_TEMP_DIR: str = "/tmp/vigilant_inspections"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

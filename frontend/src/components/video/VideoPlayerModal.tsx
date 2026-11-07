@@ -2,10 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   X,
   Info,
-  Layers
+  Layers,
+  FileText
 } from 'lucide-react';
 import { Video } from '../../types/video';
 import { VideoControls } from './VideoControls';
+import { VideoInspectionDrawer } from './VideoInspectionDrawer';
 
 interface VideoPlayerModalProps {
   video: Video | null;
@@ -25,6 +27,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ video, onClo
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showTelemetry, setShowTelemetry] = useState(true);
+  const [showInspectionModal, setShowInspectionModal] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -152,6 +155,15 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ video, onClo
 
           <div className="flex items-center gap-2 shrink-0">
             <button
+              onClick={() => setShowInspectionModal(true)}
+              title="Open FFprobe Metadata Inspection Manifest"
+              className="px-3 py-1.5 rounded-xl bg-[#0e2729] hover:bg-[#13373a] border border-[#194042] text-xs font-mono text-[#2dd4bf] flex items-center gap-1.5 transition-colors"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Inspect Report</span>
+            </button>
+
+            <button
               onClick={() => setShowTelemetry(!showTelemetry)}
               title="Toggle Surveillance Telemetry"
               className={`p-2 rounded-xl transition-colors ${
@@ -251,6 +263,15 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({ video, onClo
           </div>
         )}
       </div>
+
+      {/* Structured Media Inspection Manifest Modal */}
+      {showInspectionModal && (
+        <VideoInspectionDrawer
+          video={video}
+          isOpen={showInspectionModal}
+          onClose={() => setShowInspectionModal(false)}
+        />
+      )}
     </div>
   );
 };
