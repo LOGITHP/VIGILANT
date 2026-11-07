@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Trash2, Film, HardDrive, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
+import { Play, Trash2, Film, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
 import { Video } from '../../types/video';
 
 interface VideoTableViewProps {

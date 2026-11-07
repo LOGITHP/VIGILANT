@@ -2,12 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   X,
   Info,
-  ShieldCheck,
-  Cpu,
-  Layers,
-  Clock,
-  HardDrive,
-  Download
+  Layers
 } from 'lucide-react';
 import { Video } from '../../types/video';
 import { VideoControls } from './VideoControls';

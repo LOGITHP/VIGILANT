@@ -2,12 +2,10 @@ import React from 'react';
 import {
   Play,
   Film,
-  Calendar,
   HardDrive,
   Trash2,
   AlertTriangle,
-  Loader2,
-  CheckCircle2
+  Loader2
 } from 'lucide-react';
 import { Video } from '../../types/video';
 
