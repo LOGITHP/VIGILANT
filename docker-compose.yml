@@ -64,3 +64,4 @@ volumes:
 networks:
   vigilant-net:
     driver: bridge
+

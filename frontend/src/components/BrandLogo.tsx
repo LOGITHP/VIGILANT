@@ -18,3 +18,4 @@ export const BrandLogo: React.FC<{ size?: 'sm' | 'md' | 'lg' }> = ({ size = 'md'
     </div>
   );
 };
+

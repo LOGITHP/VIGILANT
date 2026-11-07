@@ -85,3 +85,4 @@ async def test_login_invalid_password(client: AsyncClient):
 async def test_unauthorized_access_without_token(client: AsyncClient):
     res = await client.get("/api/v1/auth/me")
     assert res.status_code == 401
+

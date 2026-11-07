@@ -146,3 +146,4 @@ async def register(
         user_agent=ua
     )
     return _format_user_response(new_user)
+

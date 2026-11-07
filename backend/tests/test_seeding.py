@@ -51,3 +51,4 @@ async def test_seeding_creates_admin_and_is_idempotent(db_session: AsyncSession,
     count_q = select(User).where(User.email == "cctv@gmail.com")
     all_users = (await db_session.execute(count_q)).scalars().all()
     assert len(all_users) == 1
+

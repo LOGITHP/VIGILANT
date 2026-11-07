@@ -120,3 +120,4 @@ class Permission(Base):
         secondary=role_permissions,
         back_populates="permissions"
     )
+

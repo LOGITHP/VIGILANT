@@ -41,3 +41,4 @@ async def root():
         "message": "VIGILANT AI CCTV Monitoring Intelligence API is operational",
         "docs": "/docs"
     }
+

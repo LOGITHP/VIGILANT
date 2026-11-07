@@ -93,3 +93,4 @@ def decode_token(token: str) -> Dict[str, Any]:
 def hash_token(token: str) -> str:
     """Compute a SHA-256 hash of a token for safe indexing in sessions table."""
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
+

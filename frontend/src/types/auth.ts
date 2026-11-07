@@ -36,3 +36,4 @@ export interface AuthContextType {
   logout: () => Promise<void>;
   clearError: () => void;
 }
+

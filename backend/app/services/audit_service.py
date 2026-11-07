@@ -26,3 +26,4 @@ class AuditService:
         await db.commit()
         await db.refresh(audit_entry)
         return audit_entry
+

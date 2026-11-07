@@ -59,3 +59,4 @@ def test_token_hash_deterministic():
     hash2 = hash_token(token)
     assert hash1 == hash2
     assert len(hash1) == 64  # SHA-256 hex digest length
+

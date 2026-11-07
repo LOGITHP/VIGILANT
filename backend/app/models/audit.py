@@ -49,3 +49,4 @@ class AuditLog(Base):
     )
 
     user: Mapped[Optional["User"]] = relationship("User", back_populates="audit_logs")
+

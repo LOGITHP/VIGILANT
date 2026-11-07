@@ -53,3 +53,4 @@ class UserSession(Base):
     )
 
     user: Mapped["User"] = relationship("User", back_populates="sessions")
+
