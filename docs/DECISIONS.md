@@ -30,3 +30,4 @@
   - Render an optimized high-resolution CCTV camera visual asset for the left hero panel.
   - Implement the right-side authentication card with Tailwind CSS, custom dark cyan styling (`#0c1618`), glowing teal typography, rounded inputs, password reveal toggle, and a responsive glassmorphic backdrop.
   - Omit third-party social logins (Google, Apple, Facebook) as requested.
+

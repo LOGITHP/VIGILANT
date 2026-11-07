@@ -340,3 +340,4 @@ VIGILANT/
    - Navigates to `/dashboard`.
    - Displays authenticated dashboard with `cctv@gmail.com` and `SUPERADMIN` status.
 5. Clicking Logout revokes the session, clears tokens, and redirects back to `/login`.
+
