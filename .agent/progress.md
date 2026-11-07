@@ -16,3 +16,9 @@
 - [x] Task 10: Surveillance Login Page Implementation (Faithful to Reference 1)
 - [x] Task 11: Empty Surveillance Dashboard & Command Center UI
 - [x] Task 12: End-to-End Verification, Automated Tests & Documentation
+- [x] Task 13: UI Refinements & Bug Fixes:
+  - Removed clutter badges (`AI INTELLIGENCE ONLINE`, `CAM-01 • PTZ 4K AI SENSOR`, `ENCRYPTION: ARGON2ID + JWT`) per user request.
+  - Re-rendered camera asset with cosine radial alpha blending and floor glow, eliminating square borders.
+  - Fixed client-side API endpoint resolution & Vite preview proxy routing.
+  - Enhanced Pydantic `LoginRequest` validator to accept both `username` and `email` payload keys.
+

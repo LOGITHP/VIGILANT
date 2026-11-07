@@ -66,15 +66,17 @@ export const Login: React.FC = () => {
         <div className="flex-1 flex flex-col lg:flex-row items-center justify-between gap-8 my-auto relative">
           
           {/* Left Column: CCTV Camera Showcase */}
-          <div className="relative flex-1 w-full flex items-center justify-center lg:justify-start lg:pl-10">
-            {/* Ambient Spotlight Ring behind pedestal */}
-            <div className="absolute w-72 h-72 sm:w-88 sm:h-88 rounded-full bg-gradient-to-t from-[#15b89a]/20 via-[#0e2929]/10 to-transparent blur-2xl pointer-events-none" />
+          <div className="relative flex-1 w-full flex items-center justify-center lg:justify-start lg:pl-12">
+            {/* Ambient Radial Spotlight and Floor Reflection */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 sm:w-96 sm:h-96 rounded-full bg-[#15b89a]/15 blur-3xl pointer-events-none" />
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-72 sm:w-88 h-14 bg-[#15b89a]/20 rounded-[100%] blur-xl pointer-events-none" />
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-56 sm:w-72 h-6 bg-[#2dd4bf]/25 rounded-[100%] blur-md pointer-events-none" />
             
-            <div className="relative group transition-transform duration-500 hover:scale-[1.02]">
+            <div className="relative group transition-transform duration-700 hover:scale-[1.015]">
               <img
                 src={cctvCameraAsset}
                 alt="VIGILANT AI CCTV Surveillance Camera"
-                className="max-h-[360px] sm:max-h-[420px] object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.9)]"
+                className="max-h-[380px] sm:max-h-[440px] w-auto object-contain select-none pointer-events-none drop-shadow-[0_25px_45px_rgba(0,0,0,0.85)] filter contrast-[1.03]"
               />
             </div>
           </div>

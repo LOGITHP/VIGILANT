@@ -86,3 +86,21 @@ async def test_unauthorized_access_without_token(client: AsyncClient):
     res = await client.get("/api/v1/auth/me")
     assert res.status_code == 401
 
+
+@pytest.mark.asyncio
+async def test_login_with_email_key_instead_of_username(client: AsyncClient):
+    # Register user first
+    await client.post("/api/v1/auth/register", json={
+        "email": "fieldtest@vigilant.ai",
+        "password": "CorrectPassword123"
+    })
+
+    # Login with 'email' key
+    res = await client.post("/api/v1/auth/login", json={
+        "email": "fieldtest@vigilant.ai",
+        "password": "CorrectPassword123"
+    })
+    assert res.status_code == 200
+    assert "access_token" in res.json()
+
+

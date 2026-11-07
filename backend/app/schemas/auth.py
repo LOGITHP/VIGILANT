@@ -1,11 +1,20 @@
 from typing import Optional
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, model_validator
 from app.schemas.user import UserResponse
 
 
 class LoginRequest(BaseModel):
-    username: str = Field(..., description="Email or username for authentication")
+    username: Optional[str] = Field(None, description="Email or username for authentication")
+    email: Optional[str] = Field(None, description="Email address for authentication")
     password: str = Field(..., min_length=1, description="Account password")
+
+    @model_validator(mode="after")
+    def validate_identifier(self):
+        if not self.username and not self.email:
+            raise ValueError("Either 'username' or 'email' must be provided.")
+        if not self.username and self.email:
+            self.username = self.email
+        return self
 
 
 class RegisterRequest(BaseModel):

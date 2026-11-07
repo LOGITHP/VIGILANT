@@ -31,3 +31,13 @@
   - Implement the right-side authentication card with Tailwind CSS, custom dark cyan styling (`#0c1618`), glowing teal typography, rounded inputs, password reveal toggle, and a responsive glassmorphic backdrop.
   - Omit third-party social logins (Google, Apple, Facebook) as requested.
 
+## ADR-004: Client-Side Reverse Proxy & Flexible Identifier Ingestion
+- **Date:** 2026-11-07
+- **Status:** Accepted
+- **Context:** Containerized production preview environments and varied clients may submit credentials under either `username` or `email` payload keys, and browser clients need predictable API proxying.
+- **Decision:**
+  - Enhance FastAPI Pydantic `LoginRequest` validator to seamlessly accept both `username` and `email` payload keys.
+  - Configure Vite preview mode with reverse proxy forwarding `/api` to the backend service.
+  - Configure client-side API base URL with fallback to `http://localhost:8000/api/v1` for local browser execution.
+
+
